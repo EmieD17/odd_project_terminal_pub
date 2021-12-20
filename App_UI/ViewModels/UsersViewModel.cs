@@ -192,7 +192,10 @@ namespace App_UI.ViewModels
             private set
             {
                 isDirty = value;
+
+                ValidateDataCommand?.RaiseCanExecuteChanged();
                 OnPropertyChanged();
+
             }
         }
 
@@ -239,6 +242,7 @@ namespace App_UI.ViewModels
             SaveCommand = new DelegateCommand<string>(SaveData, CanSave);
             CancelCommand = new DelegateCommand<string>(CancelChange, CanCancel);
             DeleteCommand = new DelegateCommand<string>(DeleteData, CanDelete);
+            ValidateDataCommand = new DelegateCommand<string>(ValidateData, CanValidate);
 
             initRegEx();
         }
@@ -284,7 +288,7 @@ namespace App_UI.ViewModels
 
         private bool CanValidate(string obj)
         {
-            return true;
+            return IsDirty;
         }
 
         public void UpdateData(IDataService<Person> peopleDataService)
@@ -305,9 +309,9 @@ namespace App_UI.ViewModels
         /// </summary>
         private void initRegEx()
         {
-            ReProvince = new Regex(@"TODO");
-            RePhoneNumber = new Regex(@"TODO");
-            RePostalCode = new Regex(@"TODO");
+            ReProvince = new Regex(@"[a-zA-Z]{2}");
+            RePhoneNumber = new Regex(@"\(?-*\.*(\d{3})\)?\.*-*\s*(\d{3})\.*-*\s*(\d{4})");
+            RePostalCode = new Regex(@"[A-z]\d[A-z][ -]?\d[A-z]\d|(\d{5})");
 
             ReEmail = new Regex(@"([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*");
         }
@@ -326,9 +330,25 @@ namespace App_UI.ViewModels
             /// TODO 03c : Valider les données de chaque propriété
 
 
-            if (!ReEmail.IsMatch(Email))
+            if (Email == null || !ReEmail.IsMatch(Email))
             {
                 Message += "Le courriel n'a pas le bon format." + Environment.NewLine;
+            }
+            if (Province == null || !ReProvince.IsMatch(Province))
+            {
+                Message += "La province/État n'a pas le bon format." + Environment.NewLine;
+            }
+            if (Phone == null || !RePhoneNumber.IsMatch(Phone))
+            {
+                Message += "Le numéro de téléphone n'a pas le bon format." + Environment.NewLine;
+            }
+            if (Mobile == null || !RePhoneNumber.IsMatch(Mobile))
+            {
+                Message += "Le numéro de téléphone mobile n'a pas le bon format." + Environment.NewLine;
+            }
+            if (PostalCode == null || !RePostalCode.IsMatch(PostalCode))
+            {
+                Message += "Le code postal n'a pas le bon format." + Environment.NewLine;
             }
 
             IsDirty = Message != "";
